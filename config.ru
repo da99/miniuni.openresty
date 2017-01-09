@@ -1,0 +1,4 @@
+require './miniuni'
+
+run Cuba
+

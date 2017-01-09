@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# -*- bash -*-
+#
+#
+export PORT="$PORT"
+set -u -e -o pipefail
+
+export PATH="$PATH:/sbin" # === Heroku fix: to find ldconfig
+
+# Used for NGINX startup error and access logs:
+#   https://trac.nginx.org/nginx/ticket/147
+mkdir -p tmp
+
+if [[ -e progs/luarocks/bin/luarocks ]]; then
+  eval $(progs/luarocks/bin/luarocks path --bin)
+  echo "LUA_PATH=$LUA_PATH"
+  echo "LUA_CPATH=$LUA_CPATH"
+fi
+
+if [[ ! -z "$PORT" ]]; then
+  echo "listen $PORT;" > progs/listen.conf
+fi
+
+echo "=====> PORT: $PORT"
+
+if [[ -z "$@" ]]; then
+  progs/openresty/nginx/sbin/nginx -v
+  progs/openresty/nginx/sbin/nginx -p "$PWD" -c conf/nginx.conf -t
+fi
+progs/openresty/nginx/sbin/nginx -p "$PWD" -c conf/nginx.conf "$@"
+
+
+
